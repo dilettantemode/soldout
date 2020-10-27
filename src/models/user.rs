@@ -2,11 +2,10 @@ use crate::schema::user;
 
 use crate::schema::user::dsl;
 use crate::schema::user::dsl::*;
+use chrono::NaiveDateTime;
 use diesel::mysql::MysqlConnection;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
-use std::time::SystemTime;
-
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Insertable, Deserialize, AsChangeset)]
@@ -14,51 +13,42 @@ use serde_derive::{Deserialize, Serialize};
 pub struct NewUser {
     pub username: String,
     pub email: String,
-    pub created_at: Option<SystemTime>,
-    pub updated_at: Option<SystemTime>,
+    pub created_at: Option<NaiveDateTime>,
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 impl NewUser {
-    pub fn create(&self, connection: &MysqlConnection) -> Result<User, diesel::result::Error> {
+    pub fn create(&self, &connection: &MysqlConnection) {
         diesel::insert_into(user::table)
             .values(self)
-            .get_result(connection)
+            .execute(&connection)
+            .unwrap();
     }
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
-    pub id: i32,
+    pub id: u64,
     pub username: String,
     pub email: String,
-    pub created_at: String,
-    pub updated_at: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl User {
-    pub fn find(
-        user_id: &i32,
-        connection: &MysqlConnection,
-    ) -> Result<User, diesel::result::Error> {
-        user::table.find(user_id).first(connection)
+    pub fn find(user_id: &u64, &connection: &MysqlConnection) {
+        user::table.find(user_id).execute(&connection).unwrap();
     }
 
-    pub fn delete(
-        user_id: &i32,
-        connection: &MysqlConnection,
-    ) -> Result<(), diesel::result::Error> {
-        diesel::delete(dsl::user.find(user_id)).execute(connection)?;
+    pub fn update(user_id: &u64, new_user: &NewUser, connection: &MysqlConnection) {
+        diesel::update(dsl::user.find(user_id))
+            .set(new_user)
+            .execute(connection)?;
         Ok(())
     }
 
-    pub fn update(
-        user_id: &i32,
-        new_post: &NewUser,
-        connection: &MysqlConnection,
-    ) -> Result<(), diesel::result::Error> {
-        diesel::update(dsl::user.find(user_id))
-            .set(new_post)
-            .execute(connection)?;
+    pub fn delete(user_id: &i32, connection: &MysqlConnection) {
+        diesel::delete(dsl::user.find(user_id)).execute(connection)?;
         Ok(())
     }
 }

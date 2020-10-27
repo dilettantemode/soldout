@@ -1,9 +1,9 @@
 table! {
     user (id) {
-        id -> Unsigned<Integer>,
+        id -> Unsigned<Bigint>,
         username -> Varchar,
         email -> Varchar,
-        created_at -> Timestamp,
-        updated_at -> Timestamp,
+        created_at -> Nullable<Datetime>,
+        updated_at -> Nullable<Datetime>,
     }
 }
