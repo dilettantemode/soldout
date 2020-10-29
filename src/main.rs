@@ -1,5 +1,10 @@
+mod db;
 mod handlers;
+mod models;
+mod repositories;
 mod routes;
+mod schema;
+
 use self::{handlers::user_handler, routes::user_route};
 use console::Style;
 use warp::{self, Filter};
@@ -9,10 +14,6 @@ extern crate diesel;
 #[macro_use]
 extern crate lazy_static;
 extern crate r2d2;
-
-mod db;
-mod models;
-mod schema;
 
 #[tokio::main]
 async fn main() {
